@@ -5,9 +5,9 @@ provider "google" {
 }
 
 resource "google_compute_instance" "vm_instance" {
-  name         = "terraform-instance"
+  name         = "ansible"
   machine_type = "e2-medium"
-  zone         = "us-central1-b"
+  zone         = "us-central1-c"
 
   boot_disk {
     initialize_params {
