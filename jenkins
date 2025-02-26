@@ -45,7 +45,7 @@ pipeline {
         stage('Run Ansible Playbook') {
             steps {
                 sh '''
-                ansible-playbook -i inventory.ini playbook.yml extras: '--private-key=$ANSIBLE_PRIVATE_KEY -u jenkins'
+                ansible-playbook -i inventory.ini playbook.yaml extras: '--private-key=$ANSIBLE_PRIVATE_KEY -u jenkins'
                 '''
             }
         }
