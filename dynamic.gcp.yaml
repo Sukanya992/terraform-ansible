@@ -1,5 +1,5 @@
 plugin: gcp_compute
 projects:
-  - your-project-id
+  - jenkins-452004
 auth_kind: serviceaccount
 service_account_file: /etc/ansible/key.json
