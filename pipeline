@@ -2,6 +2,7 @@ pipeline {
     agent any 
     environment {
         ANSIBLE_PRIVATE_KEY = credentials('ansible')
+        GOOGLE_APPLICATION_CREDENTIALS = credentials('gcp-key')
     }
     stages {
         stage('Checkout Code') {
@@ -10,42 +11,16 @@ pipeline {
                 git url: 'https://github.com/Sukanya992/terraform-ansible.git', branch: 'main'
             }
         }
-        stage('Setup GCP Auth') {
-            steps {
-                // Copy the GCP service account key to workspace
+        stage('Create infra') {
+           steps {
                 withCredentials([file(credentialsId: 'gcp-key', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
-                    sh 'cp $GOOGLE_APPLICATION_CREDENTIALS $WORKSPACE/key.json'
-                }
-                // Set the environment variable for Google Application Credentials
-                withEnv(["GOOGLE_APPLICATION_CREDENTIALS=$WORKSPACE/key.json"]) {
-                    sh '''
-                        gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-                        gcloud config set project your-project-id
-                    '''
+                sh 'terraform init'
+                sh 'terraform apply --auto-approve'
                 }
             }
-        }
-        stage('Terraform Init') {
-            steps {
-                dir('terraform') {  // Navigate to the directory containing Terraform files
-                    sh 'terraform init'
-                }
-            }
-        }
-        stage('Terraform Plan') {
-            steps {
-                dir('terraform') {
-                    sh 'terraform plan -out=tfplan'
-                }
-            }
-        }
-        stage('Terraform Apply') {
-            steps {
-                dir('terraform') {
-                    sh 'terraform apply -auto-approve tfplan'
-                }
-            }
-        }
+
+}
+
         stage('Run Ansible Playbook') {
             steps {
                 ansiblePlaybook(
