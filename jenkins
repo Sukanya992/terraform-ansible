@@ -1,0 +1,60 @@
+pipeline {
+    agent any
+
+    environment {
+        GOOGLE_CREDENTIALS = credentials('gcp-key')
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                git branch: 'main', url: 'https://github.com/Sukanya992/terraform-ansible.git'
+            }
+        }
+
+        stage('Create Infra with Terraform') {
+            steps {
+                withCredentials([file(credentialsId: 'gcp-key', variable: 'GOOGLE_CREDENTIALS')]) {
+                    sh '''
+                        terraform init
+                        terraform apply -var="google_credentials=${GOOGLE_CREDENTIALS}" --auto-approve
+                    '''
+                }
+            }
+        }
+
+        stage('Get Instance IP') {
+            steps {
+                script {
+                    def instanceIp = sh(script: 'terraform output -raw instance_ip', returnStdout: true).trim()
+                    env.INSTANCE_IP = instanceIp
+                }
+            }
+        }
+
+        stage('Create Ansible Inventory') {
+            steps {
+                writeFile file: 'inventory.ini', text: """
+                [webserver]
+                ${env.INSTANCE_IP} ansible_user='sukanya' ansible_ssh_private_key_file='~/.ssh/gcp-key'
+                """
+            }
+        }
+
+        stage('Run Ansible Playbook') {
+            steps {
+                sh '''
+                ansible-playbook -i inventory.ini playbook.yml
+                '''
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}
+
+
