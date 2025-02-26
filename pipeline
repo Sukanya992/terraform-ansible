@@ -4,6 +4,13 @@ pipeline {
         ANSIBLE_PRIVATE_KEY = credentials('ansible')
     }
     stages {
+        stage('Create infra') {
+            steps {
+                sh 'terraform init'
+                sh 'terraform plan -out=tfplan'
+                sh 'terraform apply -auto-approve tfplan'
+            }
+        }
         stage('Run playbook') {
             steps {
                 ansiblePlaybook(
