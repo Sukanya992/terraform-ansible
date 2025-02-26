@@ -8,8 +8,10 @@ pipeline {
         stage('Create infra') {
             steps {
                 withCredentials([file(credentialsId: 'gcp-key', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
-                    // Rename the key file to avoid the (2).json issue
-                    sh 'mv $GOOGLE_APPLICATION_CREDENTIALS $WORKSPACE/key.json'
+                    // Use wildcard to find and rename the key file
+                    sh '''
+                        mv $WORKSPACE/*.json $WORKSPACE/key.json
+                    '''
                     
                     // Confirm the file is in the right location
                     sh 'ls -la $WORKSPACE'
