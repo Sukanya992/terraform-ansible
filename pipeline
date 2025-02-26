@@ -2,6 +2,7 @@ pipeline {
     agent any 
     environment {
         ANSIBLE_PRIVATE_KEY = credentials('ansible')
+        GOOGLE_APPLICATION_CREDENTIALS = '/etc/ansible/tkey.json'
     }
     stages {
         stage('Create infra') {
