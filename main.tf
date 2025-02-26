@@ -5,7 +5,7 @@ provider "google" {
 }
 
 resource "google_compute_instance" "vm_instance" {
-  name         = "test"
+  name         = "test1"
   machine_type = "e2-medium"
   zone         = "us-central1-c"
 
