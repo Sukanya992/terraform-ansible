@@ -13,12 +13,11 @@ pipeline {
         stage('Create infra') {
             steps {
                 withCredentials([file(credentialsId: 'gcp-key', variable: 'GOOGLE_CREDENTIALS')]) {
-                    sh '''
-                        terraform init
-                        terraform apply --auto-approve
-                    '''
+                    sh 'terraform init'
+                    sh 'terraform apply -var="google_credentials=${GOOGLE_CREDENTIALS}" --auto-approve'
                 }
             }
         }
     }
 }
+
