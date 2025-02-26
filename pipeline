@@ -3,7 +3,7 @@ pipeline {
     environment {
         ANSIBLE_PRIVATE_KEY = credentials('ansible')
         GOOGLE_APPLICATION_CREDENTIALS = credentials('gcp-key') 
-}
+    }
     stages {
         stage('Create infra') {
             steps {
@@ -20,6 +20,8 @@ pipeline {
                     sh 'terraform apply -auto-approve tfplan'
                 }
             }
+        } // <-- Closing for 'Create infra' stage
+        
         stage('Run playbook') {
             steps {
                 ansiblePlaybook(
