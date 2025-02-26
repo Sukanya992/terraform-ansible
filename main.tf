@@ -1,6 +1,7 @@
 provider "google" {
-  project = "jenkins-452004"
-  region  = "us-central1"
+    credentials = file("key.json")
+    project = "jenkins-452004"
+
 }
 
 resource "google_compute_instance" "vm_instance" {
