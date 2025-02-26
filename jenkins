@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         GOOGLE_CREDENTIALS = credentials('gcp-key')
+        ANSIBLE_PRIVATE_KEY=credentials('ansible')
     }
 
     stages {
@@ -44,17 +45,13 @@ pipeline {
         stage('Run Ansible Playbook') {
             steps {
                 sh '''
-                ansible-playbook -i inventory.ini playbook.yaml
+                ansible-playbook -i inventory.ini playbook.yml extras: '--private-key=$ANSIBLE_PRIVATE_KEY -u jenkins'
                 '''
             }
         }
     }
 
-    post {
-        always {
-            cleanWs()
-        }
-    }
+    
 }
 
 
