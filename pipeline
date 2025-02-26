@@ -8,8 +8,8 @@ pipeline {
         stage('Create infra') {
             steps {
                 withCredentials([file(credentialsId: 'gcp-key', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
-                    // Copy the service account key to the workspace
-                    sh 'cp $GOOGLE_APPLICATION_CREDENTIALS $WORKSPACE/key.json'
+                    // Rename the key file to avoid the (2).json issue
+                    sh 'mv $GOOGLE_APPLICATION_CREDENTIALS $WORKSPACE/key.json'
                     
                     // Confirm the file is in the right location
                     sh 'ls -la $WORKSPACE'
@@ -20,7 +20,7 @@ pipeline {
                     sh 'terraform apply -auto-approve tfplan'
                 }
             }
-        } // <-- Closing for 'Create infra' stage
+        } // Closing for 'Create infra' stage
         
         stage('Run playbook') {
             steps {
