@@ -2,29 +2,51 @@ pipeline {
     agent any 
     environment {
         ANSIBLE_PRIVATE_KEY = credentials('ansible')
-        GOOGLE_APPLICATION_CREDENTIALS = credentials('gcp-key') 
     }
     stages {
-        stage('Create infra') {
+        stage('Checkout Code') {
             steps {
+                // Checkout the code from GitHub
+                git url: 'https://github.com/YourUsername/YourRepo.git', branch: 'main'
+            }
+        }
+        stage('Setup GCP Auth') {
+            steps {
+                // Copy the GCP service account key to workspace
                 withCredentials([file(credentialsId: 'gcp-key', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
-                    // Use wildcard to find and rename the key file
+                    sh 'cp $GOOGLE_APPLICATION_CREDENTIALS $WORKSPACE/key.json'
+                }
+                // Set the environment variable for Google Application Credentials
+                withEnv(["GOOGLE_APPLICATION_CREDENTIALS=$WORKSPACE/key.json"]) {
                     sh '''
-                        mv $WORKSPACE/*.json $WORKSPACE/key.json
+                        gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+                        gcloud config set project your-project-id
                     '''
-                    
-                    // Confirm the file is in the right location
-                    sh 'ls -la $WORKSPACE'
-                    
-                    // Initialize and apply Terraform configuration
+                }
+            }
+        }
+        stage('Terraform Init') {
+            steps {
+                dir('terraform') {  // Navigate to the directory containing Terraform files
                     sh 'terraform init'
+                }
+            }
+        }
+        stage('Terraform Plan') {
+            steps {
+                dir('terraform') {
                     sh 'terraform plan -out=tfplan'
+                }
+            }
+        }
+        stage('Terraform Apply') {
+            steps {
+                dir('terraform') {
                     sh 'terraform apply -auto-approve tfplan'
                 }
             }
-        } // Closing for 'Create infra' stage
-        
-        stage('Run playbook') {
+        }
+        stage('Run Ansible Playbook') {
             steps {
                 ansiblePlaybook(
                     playbook: 'playbook.yaml',
@@ -32,6 +54,11 @@ pipeline {
                     extras: "--private-key=${ANSIBLE_PRIVATE_KEY} -u jenkins"
                 )
             }
+        }
+    }
+    post {
+        always {
+            cleanWs()
         }
     }
 }
