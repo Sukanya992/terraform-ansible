@@ -7,11 +7,19 @@ pipeline {
     stages {
         stage('Create infra') {
             steps {
-                sh 'terraform init'
-                sh 'terraform plan -out=tfplan'
-                sh 'terraform apply -auto-approve tfplan'
+                withCredentials([file(credentialsId: 'gcp-key', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+                    // Copy the service account key to the workspace
+                    sh 'cp $GOOGLE_APPLICATION_CREDENTIALS $WORKSPACE/key.json'
+                    
+                    // Confirm the file is in the right location
+                    sh 'ls -la $WORKSPACE'
+                    
+                    // Initialize and apply Terraform configuration
+                    sh 'terraform init'
+                    sh 'terraform plan -out=tfplan'
+                    sh 'terraform apply -auto-approve tfplan'
+                }
             }
-        }
         stage('Run playbook') {
             steps {
                 ansiblePlaybook(
