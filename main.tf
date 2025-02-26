@@ -1,5 +1,5 @@
 provider "google" {
-    credentials = file("key.json")
+    credentials = file("${var.google_credentials}")
     project = "jenkins-452004"
 
 }
