@@ -1,5 +1,5 @@
 provider "google" {
-    credentials = file("key.json")
+    credentials = file("tkey.json")
     project = "jenkins-452004"
 
 }
