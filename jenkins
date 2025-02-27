@@ -45,7 +45,7 @@ pipeline {
         // Stage 4: Ping the Ansible Hosts
         stage('Ping Ansible Hosts') {
             steps {
-                withCredentials([file(credentialsId: 'ansible-private-key', variable: 'PRIVATE_KEY')]) {
+               withCredentials([sshUserPrivateKey(credentialsId: 'dynamic', keyFileVariable: 'PRIVATE_KEY', usernameVariable: 'root')]) {
 
                 sh '''
                     sleep 10  # Wait for a moment before pinging the hosts
