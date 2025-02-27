@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         GOOGLE_APPLICATION_CREDENTIALS = credentials('gcp-key') // GCP credentials for Terraform & gcloud
-        ANSIBLE_PRIVATE_KEY = credentials('dynamic') // Private key for Ansible
+        PRIVATE_KEY = credentials('dynamic') // Private key for Ansible
     }
 
     stages {
