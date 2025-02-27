@@ -2,64 +2,67 @@ pipeline {
     agent any
 
     environment {
-        GOOGLE_APPLICATION_CREDENTIALS = credentials('gcp-key')  // GCP credentials for Terraform
+        GOOGLE_APPLICATION_CREDENTIALS = credentials('gcp-key') // GCP credentials for Terraform & gcloud
         ANSIBLE_PRIVATE_KEY = credentials('dynamic') // Private key for Ansible
     }
 
     stages {
+        // Stage 1: Checkout the code from the repository
         stage('Checkout Code') {
             steps {
                 git branch: 'main', url: 'https://github.com/Sukanya992/terraform-ansible.git'
             }
         }
 
-        stage('Create Infra with Terraform') {
+        // Stage 2: Initialize and Apply Terraform to create infrastructure
+        stage('Terraform - Create Infrastructure') {
             steps {
+                // Using credentials to activate the GCP service account
                 withCredentials([file(credentialsId: 'gcp-key', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
                     sh '''
+                        # Initialize Terraform
                         terraform init
+                        
+                        # Plan the infrastructure
+                        terraform plan -var="google_credentials=${GOOGLE_APPLICATION_CREDENTIALS}"
+                        
+                        # Apply the infrastructure plan to create resources
                         terraform apply -var="google_credentials=${GOOGLE_APPLICATION_CREDENTIALS}" --auto-approve
                     '''
                 }
             }
         }
 
-        stage("Google Cloud Login") {
-            steps {
-                withCredentials([file(credentialsId: 'gcp-key', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
-                    sh '''
-                    gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
-                    '''
-                }
-            }
-        }
-
-        stage("Check Connection") {
+        // Stage 3: Check Ansible Inventory
+        stage('Check Ansible Connection') {
             steps {
                 sh '''
-                ansible-inventory --graph
+                    ansible-inventory --graph
                 '''
             }
         }
 
-        stage("Ping Ansible") {
+        // Stage 4: Ping the Ansible Hosts
+        stage('Ping Ansible Hosts') {
             steps {
-                sh ''' 
-                sleep 10
-                ansible all -m ping
+                sh '''
+                    sleep 10  # Wait for a moment before pinging the hosts
+                    ansible all -m ping  # Test connectivity to all hosts
                 '''
             }
         }
 
+        // Stage 5: Run Ansible Playbook
         stage('Run Ansible Playbook') {
             steps {
-                withCredentials([sshUserPrivateKey(credentialsId: 'dynamic', keyFileVariable: 'PRIVATE_KEY_FILE')]) {
-                    sh """
-                    ansible-playbook -i /etc/ansible/dynamic.gcp.yaml playbook.yaml --private-key=\$PRIVATE_KEY_FILE -u sukanya
-                    """
+                withCredentials([sshUserPrivateKey(credentialsId: 'dynamic', keyFileVariable: 'ANSIBLE_PRIVATE_KEY')]) {
+                    sh '''
+                        ansible-playbook -i dynamic.gcp.yaml playbook.yaml --private-key=$ANSIBLE_PRIVATE_KEY -u sukanya
+                    '''
                 }
             }
         }
     }
 }
+
 
