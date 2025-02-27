@@ -1,6 +1,6 @@
 ---
 - name: install git
-  hosts: web_server
+  hosts: webserver
   become: yes
   tasks:
      - name: install git
