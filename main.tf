@@ -5,9 +5,9 @@ provider "google" {
 }
 
 resource "google_compute_instance" "vm_instance" {
-  name         = "test"
+  name         = "vm"
   machine_type = "e2-medium"
-  zone         = "us-central1-c"
+  zone         = "us-central1-b"
 
   boot_disk {
     initialize_params {
