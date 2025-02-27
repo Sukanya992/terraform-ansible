@@ -37,7 +37,7 @@ pipeline {
         stage('Check Ansible Connection') {
             steps {
                 sh '''
-                    ansible-inventory --graph
+                    ansible-inventory -i /etc/ansible/dynamic.gcp.yaml --graph
                 '''
             }
         }
@@ -47,7 +47,7 @@ pipeline {
             steps {
                 sh '''
                     sleep 10  # Wait for a moment before pinging the hosts
-                    ansible all -m ping  # Test connectivity to all hosts
+                    ansible all -i /etc/ansible/dynamic.gcp.yaml -m ping  # Test connectivity to all hosts
                 '''
             }
         }
@@ -57,7 +57,7 @@ pipeline {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'dynamic', keyFileVariable: 'ANSIBLE_PRIVATE_KEY')]) {
                     sh '''
-                        ansible-playbook -i dynamic.gcp.yaml playbook.yaml --private-key=$ANSIBLE_PRIVATE_KEY -u jenkins
+                        ansible-playbook -i /etc/ansible/dynamic.gcp.yaml playbook.yaml --private-key=$ANSIBLE_PRIVATE_KEY -u jenkins
                     '''
                 }
             }
