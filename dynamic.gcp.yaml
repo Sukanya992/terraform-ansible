@@ -1,7 +1,3 @@
-[web]
-gcp_instance
-
-[gcp_instance]
 plugin: gcp_compute
 projects:
   - jenkins-452004
