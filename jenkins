@@ -29,11 +29,12 @@ pipeline {
                 withCredentials([file(credentialsId: 'gcp-key', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
                     script {
                         def destPath = "${WORKSPACE}/gcp-key.json"
+                        // Copy the file to workspace
                         sh """
                             cp ${GOOGLE_APPLICATION_CREDENTIALS} ${destPath}
                             ls -l ${destPath}
                         """
-                        // Set the environment variable for subsequent stages
+                        // Set the environment variable securely for later stages
                         env.GOOGLE_APPLICATION_CREDENTIALS = destPath
                     }
                 }
@@ -43,9 +44,9 @@ pipeline {
         stage('Run Ansible Playbook') {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'dynamic', keyFileVariable: 'PRIVATE_KEY_FILE')]) {
-                    sh '''
-                    ansible-playbook -i dynamic.gcp.yaml playbook.yaml --private-key=$PRIVATE_KEY_FILE -u sukanya
-                    '''
+                    sh """
+                    ansible-playbook -i dynamic.gcp.yaml playbook.yaml --private-key=\$PRIVATE_KEY_FILE -u sukanya
+                    """
                 }
             }
         }
