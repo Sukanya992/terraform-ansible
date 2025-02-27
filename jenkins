@@ -24,6 +24,18 @@ pipeline {
             }
         }
 
+        stage('Setup GCP Key') {
+            steps {
+                withCredentials([file(credentialsId: 'gcp-key', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+                    sh '''
+                        cp $GOOGLE_APPLICATION_CREDENTIALS ${WORKSPACE}/gcp-key.json
+                        export GOOGLE_APPLICATION_CREDENTIALS=${WORKSPACE}/gcp-key.json
+                        ls -l ${WORKSPACE}/gcp-key.json
+                    '''
+                }
+            }
+        }
+
         stage('Run Ansible Playbook') {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'dynamic', keyFileVariable: 'PRIVATE_KEY_FILE')]) {
@@ -35,4 +47,3 @@ pipeline {
         }
     }
 }
-
