@@ -1,7 +1,11 @@
+[web]
+gcp_instance
+
+[gcp_instance]
 plugin: gcp_compute
 projects:
   - jenkins-452004
 auth_kind: serviceaccount
-service_account_file: "{{ lookup('env', 'GOOGLE_APPLICATION_CREDENTIALS') }}"
+service_account_file: /etc/ansible/key.json
 
 
