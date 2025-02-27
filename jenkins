@@ -30,7 +30,7 @@ pipeline {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'dynamic', keyFileVariable: 'PRIVATE_KEY_FILE')]) {
                     sh """
-                    ansible-playbook -i /etc/ansible/dynamic.gcp.yaml playbook.yaml --private-key=\$PRIVATE_KEY_FILE -u sukanya
+                    ansible-playbook -i dynamic.gcp.yaml playbook.yaml --private-key=\$PRIVATE_KEY_FILE -u sukanya
                     """
                 }
             }
