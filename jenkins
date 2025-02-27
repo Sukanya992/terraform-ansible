@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        GOOGLE_CREDENTIALS = credentials('gcp-key')  // GCP credentials for Terraform
+        GOOGLE_APPLICATION_CREDENTIALS = credentials('gcp-key')  // GCP credentials for Terraform
         ANSIBLE_PRIVATE_KEY = credentials('dynamic') // Private key for Ansible
     }
 
@@ -15,25 +15,51 @@ pipeline {
 
         stage('Create Infra with Terraform') {
             steps {
-                withCredentials([file(credentialsId: 'gcp-key', variable: 'GOOGLE_CREDENTIALS')]) {
+                withCredentials([file(credentialsId: 'gcp-key', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
                     sh '''
                         terraform init
-                        terraform apply -var="google_credentials=${GOOGLE_CREDENTIALS}" --auto-approve
+                        terraform apply -var="google_credentials=${GOOGLE_APPLICATION_CREDENTIALS}" --auto-approve
                     '''
                 }
             }
         }
 
+        stage("Google Cloud Login") {
+            steps {
+                withCredentials([file(credentialsId: 'gcp-key', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+                    sh '''
+                    gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
+                    '''
+                }
+            }
+        }
 
+        stage("Check Connection") {
+            steps {
+                sh '''
+                ansible-inventory --graph
+                '''
+            }
+        }
+
+        stage("Ping Ansible") {
+            steps {
+                sh ''' 
+                sleep 10
+                ansible all -m ping
+                '''
+            }
+        }
 
         stage('Run Ansible Playbook') {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'dynamic', keyFileVariable: 'PRIVATE_KEY_FILE')]) {
                     sh """
-                    ansible-playbook -i dynamic.gcp.yaml playbook.yaml --private-key=\$PRIVATE_KEY_FILE -u sukanya
+                    ansible-playbook -i /etc/ansible/dynamic.gcp.yaml playbook.yaml --private-key=\$PRIVATE_KEY_FILE -u sukanya
                     """
                 }
             }
         }
     }
 }
+
